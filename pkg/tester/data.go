@@ -149,6 +149,30 @@ func loadAccounts(filePath string) ([]*types.AccountCurrency, error) {
 	return accounts, nil
 }
 
+// loadAccount is a utility function to parse the []*types.AccountCurrency
+// from a string.
+func loadAccount(accountAddress string) []*types.AccountCurrency {
+	if len(accountAddress) == 0 {
+		return []*types.AccountCurrency{}
+	}
+
+	accounts := []*types.AccountCurrency{}
+	accountIndentifier := &types.AccountIdentifier{
+		Address: accountAddress,
+		// You can set other fields of AccountIdentifier here if needed.
+	}
+
+	// Create an AccountCurrency instance with the Account field set to the created AccountIdentifier.
+	targetAccount := &types.AccountCurrency{
+		Account: accountIndentifier,
+		// You can set other fields of AccountCurrency here if needed.
+	}
+
+	accounts = append(accounts, targetAccount)
+
+	return accounts
+}
+
 // CloseDatabase closes the database used by DataTester.
 func (t *DataTester) CloseDatabase(ctx context.Context) {
 	if err := t.database.Close(ctx); err != nil {
@@ -248,6 +272,9 @@ func InitializeData(
 		err = fmt.Errorf("unable to load interesting accounts: %w%s", err, metadata)
 		color.Red(err.Error())
 		return nil, err
+	}
+	if len(config.TargetAccount) != 0 {
+		interestingAccounts = loadAccount(config.TargetAccount)
 	}
 
 	counterStorage := modules.NewCounterStorage(localStore)
